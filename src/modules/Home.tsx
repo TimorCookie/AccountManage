@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
 import icon_add from '../assets/icon_add.png';
-import AddAccount from '../components/AddAcount.tsx';
+import AddAccount from '../components/AddAcount';
 export default () => {
   const addAccountRef = useRef(null);
   const renderTitle = () => {

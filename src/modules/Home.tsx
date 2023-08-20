@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   SectionList,
+  LayoutAnimation,
 } from 'react-native';
 
 import {getItem} from '../utils';
@@ -22,12 +23,18 @@ const iconMap: any = {
   游戏: icon_game,
   平台: icon_platform,
   银行卡: icon_bank,
-  其它: icon_other,
+  其他: icon_other,
 };
 
 export default () => {
   const addAccountRef = useRef(null);
   const [sectionData, setSectionData] = useState<any>([]);
+  const [sectionState, setSectionState] = useState<any>({
+    游戏: true,
+    平台: true,
+    银行卡: true,
+    其他: true,
+  });
 
   const renderTitle = () => {
     return (
@@ -38,16 +45,45 @@ export default () => {
   };
   const renderSectionHeader = ({section}: any) => {
     return (
-      <View style={styles.groupHeader}>
+      <View
+        style={[
+          styles.groupHeader,
+          {
+            borderBottomLeftRadius:
+              !section.data.length || !sectionState[section.type] ? 12 : 0,
+            borderBottomRightRadius:
+              !section.data.length || !sectionState[section.type] ? 12 : 0,
+          },
+        ]}>
         <Image source={iconMap[section.type]} style={styles.typeImg} />
         <Text style={styles.typeTxt}>{section.type}</Text>
-        <TouchableOpacity style={styles.arrowButton}>
-          <Image source={icon_arrow} style={styles.arrowImg} />
+        <TouchableOpacity
+          style={styles.arrowButton}
+          onPress={() => {
+            const copy = {...sectionState};
+            copy[section.type] = !copy[section.type];
+            LayoutAnimation.easeInEaseOut();
+            setSectionState(copy);
+          }}>
+          <Image
+            source={icon_arrow}
+            style={[
+              styles.arrowImg,
+              {
+                transform: [
+                  {rotate: sectionState[section.type] ? '0deg' : '-90deg'},
+                ],
+              },
+            ]}
+          />
         </TouchableOpacity>
       </View>
     );
   };
   const renderSectionItem = ({item, index, section}: any) => {
+    if (!sectionState[item.type]) {
+      return null;
+    }
     return (
       <View style={styles.itemLayout}>
         <Text style={styles.nameTxt}>{item.name}</Text>
@@ -58,10 +94,10 @@ export default () => {
       </View>
     );
   };
-  useEffect(() => {
+  const loadList = () => {
     getItem('accountList').then(data => {
       const accountList = data ? JSON.parse(data) : [];
-
+      console.log(accountList);
       const gameList = accountList.filter((item: any) => {
         return item.type === '游戏';
       });
@@ -76,10 +112,13 @@ export default () => {
         {type: '游戏', data: gameList},
         {type: '平台', data: platformList},
         {type: '银行卡', data: bankList},
-        {type: '其它', data: otherList},
+        {type: '其他', data: otherList},
       ];
       setSectionData(sectionData);
     });
+  };
+  useEffect(() => {
+    loadList();
   }, []);
   return (
     <View style={styles.root}>
@@ -89,6 +128,7 @@ export default () => {
         keyExtractor={(item, index) => item + index}
         renderItem={renderSectionItem}
         renderSectionHeader={renderSectionHeader}
+        style={styles.sectionLayout}
       />
       <TouchableOpacity
         style={styles.addButton}
@@ -99,7 +139,7 @@ export default () => {
         <Image style={styles.addImg} source={icon_add} />
       </TouchableOpacity>
 
-      <AddAccount ref={addAccountRef} />
+      <AddAccount ref={addAccountRef} onSave={() => loadList()} />
     </View>
   );
 };
@@ -132,6 +172,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     resizeMode: 'contain',
+  },
+  sectionLayout: {
+    paddingHorizontal: 12,
   },
   groupHeader: {
     flexDirection: 'row',

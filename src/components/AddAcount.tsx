@@ -40,7 +40,9 @@ const AddAccount = (props: any, ref: any) => {
     getItem('accountList').then(res => {
       let accountList = res ? JSON.parse(res) : [];
       accountList.push(newAccount);
+
       saveData('accountList', JSON.stringify(accountList)).then(() => {
+        props.onSave();
         hide();
       });
     });

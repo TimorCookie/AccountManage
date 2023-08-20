@@ -4,15 +4,26 @@ import {
   View,
   StyleSheet,
   Text,
-  TouchableOpacityComponent,
+  TextInput,
   Image,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import icon_close_modal from '../assets/icon_close_modal.png';
+
+import {getUUID, getItem, saveData} from '../utils';
+
 const AddAccount = (props: any, ref: any) => {
   const [visible, setVisible] = useState<boolean>(false);
-  const [type, setType] = useState<string>(0);
+  const [type, setType] = useState<string>('');
+  const [name, setName] = useState<any>('');
+  const [account, setAccount] = useState<any>('');
+  const [password, setPassword] = useState<any>('');
+  const [id, setId] = useState<string>('');
   const show = () => {
+    const uuid = getUUID();
+    setId(uuid as string);
     setVisible(true);
   };
   const hide = () => {
@@ -24,6 +35,16 @@ const AddAccount = (props: any, ref: any) => {
       show,
     };
   });
+  const onSavePress = () => {
+    const newAccount = {id, type, name, account, password};
+    getItem('accountList').then(res => {
+      let accountList = res ? JSON.parse(res) : [];
+      accountList.push(newAccount);
+      saveData('accountList', JSON.stringify(accountList)).then(() => {
+        hide();
+      });
+    });
+  };
   const renderTitle = () => {
     const styles = StyleSheet.create({
       titleLayout: {
@@ -121,6 +142,103 @@ const AddAccount = (props: any, ref: any) => {
       </View>
     );
   };
+  const renderName = () => {
+    const styles = StyleSheet.create({
+      input: {
+        width: '100%',
+        height: 40,
+        backgroundColor: '#f0f0f0',
+        marginTop: 8,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        fontSize: 16,
+        color: '#333333',
+      },
+    });
+    return (
+      <TextInput
+        style={styles.input}
+        maxLength={20}
+        value={name}
+        onChangeText={text => {
+          setName(text || '');
+        }}
+      />
+    );
+  };
+  const renderAccount = () => {
+    const styles = StyleSheet.create({
+      input: {
+        width: '100%',
+        height: 40,
+        backgroundColor: '#f0f0f0',
+        marginTop: 8,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        fontSize: 16,
+        color: '#333333',
+      },
+    });
+    return (
+      <TextInput
+        style={styles.input}
+        maxLength={20}
+        value={account}
+        onChangeText={text => {
+          setAccount(text || '');
+        }}
+      />
+    );
+  };
+  const renderPassword = () => {
+    const styles = StyleSheet.create({
+      input: {
+        width: '100%',
+        height: 40,
+        backgroundColor: '#f0f0f0',
+        marginTop: 8,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        fontSize: 16,
+        color: '#333333',
+      },
+    });
+    return (
+      <TextInput
+        style={styles.input}
+        maxLength={20}
+        value={password}
+        onChangeText={text => {
+          setPassword(text || '');
+        }}
+      />
+    );
+  };
+  const renderSaveButton = () => {
+    const styles = StyleSheet.create({
+      saveButton: {
+        width: '100%',
+        height: 44,
+        backgroundColor: '#3050ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 8,
+        marginTop: 20,
+        marginBottom: 10,
+      },
+      saveButtonTxt: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+      },
+    });
+    return (
+      <TouchableOpacity style={styles.saveButton} onPress={onSavePress}>
+        <Text style={styles.saveButtonTxt}>保 存</Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -128,13 +246,22 @@ const AddAccount = (props: any, ref: any) => {
       onRequestClose={hide}
       statusBarTranslucent={true}
       animationType="fade">
-      <View style={styles.root}>
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'android' ? 'height' : 'padding'}>
         <View style={styles.content}>
           {renderTitle()}
           <Text style={styles.subTitleTxt}>账号类型</Text>
           {renderType()}
+          <Text style={styles.subTitleTxt}>账号名称</Text>
+          {renderName()}
+          <Text style={styles.subTitleTxt}>账号</Text>
+          {renderAccount()}
+          <Text style={styles.subTitleTxt}>密码</Text>
+          {renderPassword()}
+          {renderSaveButton()}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

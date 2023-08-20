@@ -21,10 +21,26 @@ const AddAccount = (props: any, ref: any) => {
   const [account, setAccount] = useState<any>('');
   const [password, setPassword] = useState<any>('');
   const [id, setId] = useState<string>('');
-  const show = () => {
-    const uuid = getUUID();
-    setId(uuid as string);
+  const [isModify, setIsModify] = useState<boolean>(false);
+  const show = (currentAccount: any) => {
     setVisible(true);
+
+    if (currentAccount) {
+      setIsModify(true);
+      setId(currentAccount.id);
+      setType(currentAccount.type);
+      setName(currentAccount.name);
+      setAccount(currentAccount.account);
+      setPassword(currentAccount.password);
+    } else {
+      setIsModify(false);
+      const uuid = getUUID();
+      setId(uuid as string);
+      setType('');
+      setName('');
+      setAccount('');
+      setPassword('');
+    }
   };
   const hide = () => {
     setVisible(false);
@@ -39,6 +55,12 @@ const AddAccount = (props: any, ref: any) => {
     const newAccount = {id, type, name, account, password};
     getItem('accountList').then(res => {
       let accountList = res ? JSON.parse(res) : [];
+
+      if (isModify) {
+        accountList = accountList.filter((item: any) => {
+          return item.id !== id;
+        });
+      }
       accountList.push(newAccount);
 
       saveData('accountList', JSON.stringify(accountList)).then(() => {

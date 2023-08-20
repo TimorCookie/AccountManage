@@ -7,9 +7,10 @@ import {
   Image,
   SectionList,
   LayoutAnimation,
+  Alert,
 } from 'react-native';
 
-import {getItem} from '../utils';
+import {getItem, saveData} from '../utils';
 
 import AddAccount from '../components/AddAcount';
 import icon_add from '../assets/icon_add.png';
@@ -35,7 +36,15 @@ export default () => {
     银行卡: true,
     其他: true,
   });
-
+  const deleteAccount = (info: any) => {
+    getItem('accountList').then(data => {
+      let accountList = data ? JSON.parse(data) : [];
+      accountList = accountList.filter((item: any) => item.id !== info.id);
+      saveData('accountList', JSON.stringify(accountList)).then(() =>
+        loadList(),
+      );
+    });
+  };
   const renderTitle = () => {
     return (
       <View style={styles.titleLayout}>
@@ -85,19 +94,30 @@ export default () => {
       return null;
     }
     return (
-      <View style={styles.itemLayout}>
+      <TouchableOpacity
+        style={styles.itemLayout}
+        onPress={() => {
+          (addAccountRef as any).current.show(item);
+        }}
+        onLongPress={() => {
+          const buttons = [
+            {text: '取消', onPress: () => {}},
+            {text: '确定', onPress: () => deleteAccount(item)},
+          ];
+          Alert.alert('提示', `确定删除「${item.name}」账号吗？`, buttons);
+        }}>
         <Text style={styles.nameTxt}>{item.name}</Text>
         <View style={styles.accpwdLayout}>
           <Text style={styles.accpwdTxt}>账号：{item.account}</Text>
           <Text style={styles.accpwdTxt}>密码：{item.password}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
   const loadList = () => {
     getItem('accountList').then(data => {
       const accountList = data ? JSON.parse(data) : [];
-      console.log(accountList);
+
       const gameList = accountList.filter((item: any) => {
         return item.type === '游戏';
       });
@@ -114,6 +134,7 @@ export default () => {
         {type: '银行卡', data: bankList},
         {type: '其他', data: otherList},
       ];
+      LayoutAnimation.easeInEaseOut();
       setSectionData(sectionData);
     });
   };
